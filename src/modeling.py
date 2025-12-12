@@ -83,16 +83,19 @@ def train_neural_network(X_train_emb, y_train, X_val_emb, y_val, X_test_emb, y_t
         keras.layers.Dropout(0.4),
         keras.layers.Dense(1, activation="sigmoid")
     ])
+  
   ffnn_model.compile(optimizer=keras.optimizers.Adam(learning_rate=1e-3),
         loss="binary_crossentropy",
         metrics=["accuracy", keras.metrics.AUC(name="auc_roc"), 
                 keras.metrics.AUC(name="auc_pr", curve="PR")]
     )
+  
   callbacks = [keras.callbacks.EarlyStopping(monitor="val_auc_pr", mode="max", 
                                     patience=3, restore_best_weights=True),
         keras.callbacks.ReduceLROnPlateau(monitor="val_auc_pr", mode="max", 
                                         factor=0.5, patience=2, min_lr=1e-6)
     ]
+
 
   history = ffnn_model.fit(X_train_s, y_train, validation_data=(X_val_s, y_val),
                             epochs=epochs, batch_size=32, class_weight=class_weight,
@@ -108,7 +111,8 @@ def train_neural_network(X_train_emb, y_train, X_val_emb, y_val, X_test_emb, y_t
 
   return ffnn_model,history,y_pred,test_acc,report,cm
 
-  def save_models(lr_model, svm_model, rf_model, nn_model, output_dir):
+
+def save_models(lr_model, svm_model, rf_model, nn_model, output_dir):
     os.makedirs(output_dir, exist_ok=True)
     joblib.dump(lr_model, os.path.join(output_dir, 'lr_model.pkl'))
     joblib.dump(svm_model, os.path.join(output_dir, 'svm.pkl'))
