@@ -8,6 +8,7 @@ from sentence_transformers import SentenceTransformer
 from tensorflow import keras
 import numpy as np
 import joblib
+import os
 
 def train_logistic_regression(X_train, y_train, X_test, y_test):
     print("Training Logistic Regression...")
@@ -64,16 +65,16 @@ def create_bert_embeddings(train_texts, val_texts, test_texts):
 
 
 def train_neural_network(X_train_emb, y_train, X_val_emb, y_val, X_test_emb, y_test, epochs=30):
-  scaler = StandardScaler()
-  X_train_s = scaler.fit_transform(X_train_emb)
-  X_val_s = scaler.transform(X_val_emb)
-  X_test_s = scaler.transform(X_test_emb)
-  classes = np.array([0, 1])
-  weights = compute_class_weight(class_weight="balanced", classes=classes, y=y_train)
-  class_weight = {0: weights[0], 1: weights[1]}
-  print("class_weight:", class_weight)
+    scaler = StandardScaler()
+    X_train_s = scaler.fit_transform(X_train_emb)
+    X_val_s = scaler.transform(X_val_emb)
+    X_test_s = scaler.transform(X_test_emb)
+    classes = np.array([0, 1])
+    weights = compute_class_weight(class_weight="balanced", classes=classes, y=y_train)
+    class_weight = {0: weights[0], 1: weights[1]}
+    print("class_weight:", class_weight)
 
-  ffnn_model = keras.Sequential([
+    ffnn_model = keras.Sequential([
         keras.layers.Dense(256, activation="relu", input_shape=(X_train_s.shape[1],),
                          kernel_regularizer=keras.regularizers.l2(1e-4)),
         keras.layers.BatchNormalization(),
@@ -84,32 +85,32 @@ def train_neural_network(X_train_emb, y_train, X_val_emb, y_val, X_test_emb, y_t
         keras.layers.Dense(1, activation="sigmoid")
     ])
   
-  ffnn_model.compile(optimizer=keras.optimizers.Adam(learning_rate=1e-3),
+    ffnn_model.compile(optimizer=keras.optimizers.Adam(learning_rate=1e-3),
         loss="binary_crossentropy",
         metrics=["accuracy", keras.metrics.AUC(name="auc_roc"), 
                 keras.metrics.AUC(name="auc_pr", curve="PR")]
     )
   
-  callbacks = [keras.callbacks.EarlyStopping(monitor="val_auc_pr", mode="max", 
+    callbacks = [keras.callbacks.EarlyStopping(monitor="val_auc_pr", mode="max", 
                                     patience=3, restore_best_weights=True),
         keras.callbacks.ReduceLROnPlateau(monitor="val_auc_pr", mode="max", 
                                         factor=0.5, patience=2, min_lr=1e-6)
     ]
 
 
-  history = ffnn_model.fit(X_train_s, y_train, validation_data=(X_val_s, y_val),
+    history = ffnn_model.fit(X_train_s, y_train, validation_data=(X_val_s, y_val),
                             epochs=epochs, batch_size=32, class_weight=class_weight,
                             callbacks=callbacks)
   
-  y_prob = ffnn_model.predict(X_test_s).ravel()
-  y_pred = (y_prob >= 0.5).astype(int)
-  test_acc=accuracy_score(y_test, y_pred)
+    y_prob = ffnn_model.predict(X_test_s).ravel()
+    y_pred = (y_prob >= 0.5).astype(int)
+    test_acc=accuracy_score(y_test, y_pred)
 
 
-  report=classification_report(y_test, y_pred, digits=4)
-  cm=confusion_matrix(y_test, y_pred)
+    report=classification_report(y_test, y_pred, digits=4)
+    cm=confusion_matrix(y_test, y_pred)
 
-  return ffnn_model,history,y_pred,test_acc,report,cm
+    return ffnn_model,history,y_pred,test_acc,report,cm
 
 
 def save_models(lr_model, svm_model, rf_model, nn_model, output_dir):
