@@ -1,123 +1,117 @@
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
-from src.data_preparation import load_split_data, get_datasets
-import seaborn as sns
-import matplotlib.pyplot as plt
-from tensorflow.keras import layers, models
-import torch
-from sentence_transformers import SentenceTransformer
 from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from sklearn.preprocessing import StandardScaler
+from sklearn.utils.class_weight import compute_class_weight
+from sentence_transformers import SentenceTransformer
+from tensorflow import keras
+import numpy as np
 import joblib
 
-train_df, val_df, test_df = load_split_data()
-X_train, X_val, X_test, y_train, y_val, y_test = get_datasets()
+def train_logistic_regression(X_train, y_train, X_test, y_test):
+    print("Training Logistic Regression...")
+    lr_model = LogisticRegression(max_iter=1000, random_state=42)
+    lr_model.fit(X_train, y_train)
 
-lr_model = LogisticRegression(max_iter=1000, random_state=42)
-lr_model.fit(X_train, y_train)
+    y_test_pred = lr_model.predict(X_test)
+    acc=accuracy_score(y_test, y_test_pred)
+    report=classification_report(y_test, y_test_pred)
+    cm = confusion_matrix(y_test, y_test_pred)
 
-y_val_pred = lr_model.predict(X_val)
-print("Validation Accuracy:", accuracy_score(y_val, y_val_pred))
-print(classification_report(y_val, y_val_pred))
+    return lr_model, acc, report, cm, y_test_pred
 
-y_test_pred = lr_model.predict(X_test)
-print("Test Accuracy:", accuracy_score(y_test, y_test_pred))
-print(classification_report(y_test, y_test_pred))
+def train_svm(X_train, y_train, X_val, y_val, X_test, y_test):
+    print("Training SVM")
+    svm_model = SVC(kernel='linear', C=1.0, random_state=42)
+    svm_model.fit(X_train, y_train)
+    y_val_pred_svm = svm_model.predict(X_val)
+    val_acc=accuracy_score(y_val, y_val_pred_svm)
+    report=classification_report(y_val, y_val_pred_svm)
+    y_test_pred_svm = svm_model.predict(X_test)
+    print("SVM Test Accuracy:", accuracy_score(y_test, y_test_pred_svm))
+    acc=classification_report(y_test, y_test_pred_svm)
+    cm_svm = confusion_matrix(y_test, y_test_pred_svm)
+    print("Confusion Matrix:\n", cm_svm)
 
-c_m = confusion_matrix(y_test, y_test_pred)
-plt.figure(figsize=(6, 5))
-sns.heatmap(c_m, annot=True, fmt="d", cmap="Reds")
-plt.xlabel("Predicted")
-plt.ylabel("Actual")
-plt.title("Confusion Matrix - Logistic Regression")
-plt.savefig('/Users/lailaalmohaymid/PycharmProjects/data_mining/reports/cm_lr.png')
-plt.show()
-
-svm_model = SVC(kernel='linear', C=1.0, random_state=42)
-svm_model.fit(X_train, y_train)
-
-y_val_pred_svm = svm_model.predict(X_val)
-print("SVM Validation Accuracy:", accuracy_score(y_val, y_val_pred_svm))
-print(classification_report(y_val, y_val_pred_svm))
-
-y_test_pred_svm = svm_model.predict(X_test)
-print("SVM Test Accuracy:", accuracy_score(y_test, y_test_pred_svm))
-print(classification_report(y_test, y_test_pred_svm))
-
-cm_svm = confusion_matrix(y_test, y_test_pred_svm)
-plt.figure(figsize=(6, 5))
-sns.heatmap(cm_svm, annot=True, fmt='d', cmap='Blues')
-plt.title('Confusion Matrix - SVM')
-plt.xlabel('Predicted')
-plt.ylabel('Actual')
-plt.savefig('/Users/lailaalmohaymid/PycharmProjects/data_mining/reports/cm_svm.png')
-plt.show()
-
-rf_model = RandomForestClassifier(n_estimators=200, max_depth=None, random_state=42, n_jobs=-1)
-rf_model.fit(X_train, y_train)
-
-y_val_pred_rf = rf_model.predict(X_val)
-print("Random Forest Validation Accuracy:", accuracy_score(y_val, y_val_pred_rf))
-print(classification_report(y_val, y_val_pred_rf))
-
-y_test_pred_rf = rf_model.predict(X_test)
-print("RandomForest Test Accuracy:", accuracy_score(y_test, y_test_pred_rf))
-print(classification_report(y_test, y_test_pred_rf))
-
-cm_rf = confusion_matrix(y_test, y_test_pred_rf)
-plt.figure(figsize=(6, 5))
-sns.heatmap(cm_rf, annot=True, fmt='d', cmap='Purples')
-plt.title('Confusion Matrix - Random Forest')
-plt.xlabel('Predicted')
-plt.ylabel('Actual')
-plt.savefig('/Users/lailaalmohaymid/PycharmProjects/data_mining/reports/cm_rf.png')
-plt.show()
-
-if torch.backends.mps.is_available():
-    device = "mps"
-else:
-    device = "cpu"
-
-bert_model = SentenceTransformer("sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2", device=device)
-
-X_train_emb = bert_model.encode(train_df["cleaned_text"].tolist(), convert_to_numpy=True, show_progress_bar=True)
-X_val_emb = bert_model.encode(val_df["cleaned_text"].tolist(), convert_to_numpy=True, show_progress_bar=True)
-X_test_emb = bert_model.encode(test_df["cleaned_text"].tolist(), convert_to_numpy=True, show_progress_bar=True)
-
-y_train_nn = (train_df["label"] == "ai").astype(int).values
-y_val_nn = (val_df["label"] == "ai").astype(int).values
-y_test_nn = (test_df["label"] == "ai").astype(int).values
-
-ffnn_model = models.Sequential([
-    layers.Input(shape=(X_train_emb.shape[1],)),
-    layers.Dense(256, activation="relu"),
-    layers.Dropout(0.3),
-    layers.Dense(128, activation="relu"),
-    layers.Dropout(0.3),
-    layers.Dense(1, activation="sigmoid")
-])
-
-ffnn_model.compile(optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"])
-ffnn_model.fit(X_train_emb, y_train_nn, validation_data=(X_val_emb, y_val_nn), epochs=10, batch_size=32)
-
-y_test_pred_nn = (ffnn_model.predict(X_test_emb) > 0.5).astype(int).flatten()
-print("Neural Network Test Accuracy:", accuracy_score(y_test_nn, y_test_pred_nn))
-print(classification_report(y_test_nn, y_test_pred_nn))
-
-cm_nn = confusion_matrix(y_test_nn, y_test_pred_nn)
-plt.figure(figsize=(6, 5))
-sns.heatmap(cm_nn, annot=True, fmt='d', cmap='Greens')
-plt.title('Confusion Matrix - Neural Network')
-plt.xlabel('Predicted')
-plt.ylabel('Actual')
-plt.savefig('/Users/lailaalmohaymid/PycharmProjects/data_mining/reports/cm_nn.png')
-plt.show()
+    return svm_model,val_acc,report,cm_svm,y_test_pred_svm
 
 
+def train_random_forest(X_train, y_train, X_val, y_val, X_test, y_test,n_estimators=100):
+    print("Training Random Forest")
+    rf_model = RandomForestClassifier(n_estimators=n_estimators, random_state=42, n_jobs=-1)
+    rf_model.fit(X_train, y_train)
+    y_val_pred_rf = rf_model.predict(X_val)
+    acc_val= accuracy_score(y_val, y_val_pred_rf)
+    report_val=classification_report(y_val, y_val_pred_rf)
+    y_test_pred_rf = rf_model.predict(X_test)
+    acc=accuracy_score(y_test, y_test_pred_rf)
+    report=classification_report(y_test, y_test_pred_rf)
 
-joblib.dump(lr_model, '/Users/lailaalmohaymid/PycharmProjects/data_mining/models/logistic_regression.joblib')
-joblib.dump(svm_model, '/Users/lailaalmohaymid/PycharmProjects/data_mining/models/svm.joblib')
-joblib.dump(rf_model, '/Users/lailaalmohaymid/PycharmProjects/data_mining/models/random_forest.joblib')
-ffnn_model.save('/Users/lailaalmohaymid/PycharmProjects/data_mining/models/neural_network.h5')
+    cm_rf = confusion_matrix(y_test, y_test_pred_rf)
+    print("Confusion Matrix:\n", cm_rf)
+    return rf_model,acc_val,report_val,acc,report,cm_rf,y_test_pred_rf
 
-print("Models saved")
+    
+
+def create_bert_embeddings(train_texts, val_texts, test_texts):
+     bert_model = SentenceTransformer("sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
+     X_train_emb = bert_model.encode(train_texts, convert_to_numpy=True, show_progress_bar=True)
+     X_val_emb = bert_model.encode(val_texts, convert_to_numpy=True, show_progress_bar=True)
+     X_test_emb = bert_model.encode(test_texts, convert_to_numpy=True, show_progress_bar=True)
+     print("Train embedding shape:", X_train_emb.shape)
+     return X_train_emb, X_val_emb, X_test_emb
+
+
+def train_neural_network(X_train_emb, y_train, X_val_emb, y_val, X_test_emb, y_test, epochs=30):
+  scaler = StandardScaler()
+  X_train_s = scaler.fit_transform(X_train_emb)
+  X_val_s = scaler.transform(X_val_emb)
+  X_test_s = scaler.transform(X_test_emb)
+  classes = np.array([0, 1])
+  weights = compute_class_weight(class_weight="balanced", classes=classes, y=y_train)
+  class_weight = {0: weights[0], 1: weights[1]}
+  print("class_weight:", class_weight)
+
+  ffnn_model = keras.Sequential([
+        keras.layers.Dense(256, activation="relu", input_shape=(X_train_s.shape[1],),
+                         kernel_regularizer=keras.regularizers.l2(1e-4)),
+        keras.layers.BatchNormalization(),
+        keras.layers.Dropout(0.4),
+        keras.layers.Dense(128, activation="relu", kernel_regularizer=keras.regularizers.l2(1e-4)),
+        keras.layers.BatchNormalization(),
+        keras.layers.Dropout(0.4),
+        keras.layers.Dense(1, activation="sigmoid")
+    ])
+  ffnn_model.compile(optimizer=keras.optimizers.Adam(learning_rate=1e-3),
+        loss="binary_crossentropy",
+        metrics=["accuracy", keras.metrics.AUC(name="auc_roc"), 
+                keras.metrics.AUC(name="auc_pr", curve="PR")]
+    )
+  callbacks = [keras.callbacks.EarlyStopping(monitor="val_auc_pr", mode="max", 
+                                    patience=3, restore_best_weights=True),
+        keras.callbacks.ReduceLROnPlateau(monitor="val_auc_pr", mode="max", 
+                                        factor=0.5, patience=2, min_lr=1e-6)
+    ]
+
+  history = ffnn_model.fit(X_train_s, y_train, validation_data=(X_val_s, y_val),
+                            epochs=epochs, batch_size=32, class_weight=class_weight,
+                            callbacks=callbacks)
+  
+  y_prob = ffnn_model.predict(X_test_s).ravel()
+  y_pred = (y_prob >= 0.5).astype(int)
+  test_acc=accuracy_score(y_test, y_pred)
+
+
+  report=classification_report(y_test, y_pred, digits=4)
+  cm=confusion_matrix(y_test, y_pred)
+
+  return ffnn_model,history,y_pred,test_acc,report,cm
+
+  def save_models(lr_model, svm_model, rf_model, nn_model, output_dir):
+    os.makedirs(output_dir, exist_ok=True)
+    joblib.dump(lr_model, os.path.join(output_dir, 'lr_model.pkl'))
+    joblib.dump(svm_model, os.path.join(output_dir, 'svm.pkl'))
+    joblib.dump(rf_model, os.path.join(output_dir, 'random_forest.pkl'))
+    nn_model.save(os.path.join(output_dir, 'ffnn.keras'))
+    print("Models saved successfully.")
