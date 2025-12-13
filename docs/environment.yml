@@ -1,0 +1,39 @@
+name: arabic-ai-detection
+channels:
+  - conda-forge
+  - pytorch
+  - defaults
+
+dependencies:
+  - python=3.10
+  - pip
+  
+  # Core libraries
+  - numpy=2.0.2
+  - pandas=2.2.2
+  - scipy=1.16.3
+  
+  # Machine Learning
+  - scikit-learn=1.6.1
+  - joblib=1.5.2
+  
+  # Deep Learning
+  - pytorch>=2.0.0
+  - tensorflow=2.19.0
+  
+  # Visualization
+  - matplotlib=3.10.0
+  - seaborn=0.13.2
+  
+  # Utilities
+  - requests=2.32.4
+  - tqdm=4.67.1
+  - openpyxl
+  
+  # Install via pip
+  - pip:
+    - transformers==4.57.3
+    - sentence-transformers==5.1.2
+    - datasets==4.0.0
+    - nltk==3.9.1
+    - fasttext==0.9.3
