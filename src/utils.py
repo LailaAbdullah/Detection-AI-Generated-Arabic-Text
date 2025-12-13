@@ -34,4 +34,5 @@ def prepare_features(train_df, val_df, test_df, num_cols):
 
 
 def convert_labels_to_binary(df):
-  return (df["label"] == "ai").astype(int).values
+  labels = df["label"].astype(str).str.strip().str.lower()
+    return (labels == "ai").astype(int).values 
