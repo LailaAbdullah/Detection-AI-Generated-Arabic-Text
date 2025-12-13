@@ -17,7 +17,7 @@ def train_logistic_regression(X_train, y_train, X_test, y_test):
 
     y_test_pred = lr_model.predict(X_test)
     acc=accuracy_score(y_test, y_test_pred)
-    report = classification_report(y_test, y_test_pred_svm, labels=[0,1], target_names=["human","ai"])
+    report = classification_report(y_test, y_test_pred, labels=[0,1], target_names=["human","ai"])
     cm = confusion_matrix(y_test, y_test_pred, labels=[0,1])
 
     return lr_model, acc, report, cm, y_test_pred
@@ -31,7 +31,7 @@ def train_svm(X_train, y_train, X_val, y_val, X_test, y_test):
     acc=classification_report(y_val, y_val_pred_svm)
     y_test_pred_svm = svm_model.predict(X_test)
     print("SVM Test Accuracy:", accuracy_score(y_test, y_test_pred_svm))
-    report=classification_report(y_test, y_test_pred, labels=[0,1], target_names=["human","ai"])
+    report=classification_report(y_test, y_test_pred_svm, labels=[0,1], target_names=["human","ai"])
     cm_svm = confusion_matrix(y_test, y_test_pred_svm, labels=[0,1])
     print("Confusion Matrix:\n", cm_svm)
 
