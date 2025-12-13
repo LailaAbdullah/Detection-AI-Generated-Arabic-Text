@@ -27,9 +27,9 @@ def prepare_features(train_df, val_df, test_df, num_cols):
   X_train=hstack([X_train_tfidf,X_train_num]).tocsr()
   X_val=hstack([X_val_tfidf,X_val_num]).tocsr()
   X_test=hstack([X_test_tfidf,X_test_num]).tocsr()
-  y_train=train_df["label"].values
-  y_val=val_df["label"].values
-  y_test=test_df["label"].values
+  y_train= convert_labels_to_binary(train_df)
+  y_val= convert_labels_to_binary(val_df)
+  y_test= convert_labels_to_binary(test_df)
   return X_train,X_val,X_test,y_train,y_val,y_test
 
 
