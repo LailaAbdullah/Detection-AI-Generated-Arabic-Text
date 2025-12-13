@@ -39,7 +39,25 @@ cd Detection-AI-Generated-Arabic-Text
 ```bash
 pip install -r requirements.txt
 ```
+### Step 3: Download fastText Model
+Download from Google Drive**
+ [Download cc.ar.300.bin (6.8 GB)](https://drive.google.com/file/d/1BsnuJZmfhpfFRcb7kVDbpt-A9psR2K2c/view?usp=share_link)]
+## How to Run the Project
 
+This project relies on two main files for operation:
+
+### Data Preparation (data_preparation.py)
+
+This file handles the data preparation and processing phase. Here, we clean the data, extract features, and prepare it for training.
+
+### Run Modeling (run_modeling.py)
+
+This is the main script where the actual classification models are run. Once the data is ready, we run this file to train the models, evaluate them, and generate the results and graphs.
+
+### Quick Steps
+1. First: Run `data_preparation.py` to prepare the data.
+
+2. After preparation is complete, run `run_modeling.py` to train the models and compare the results.
 ### Prerequisites
 - Python 3.8 or higher
 - colab
