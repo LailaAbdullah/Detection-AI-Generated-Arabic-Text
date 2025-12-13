@@ -17,8 +17,8 @@ def train_logistic_regression(X_train, y_train, X_test, y_test):
 
     y_test_pred = lr_model.predict(X_test)
     acc=accuracy_score(y_test, y_test_pred)
-    report=classification_report(y_test, y_test_pred)
-    cm = confusion_matrix(y_test, y_test_pred)
+    report = classification_report(y_test, y_test_pred, labels=[0,1], target_names=["human","ai"])
+    cm = confusion_matrix(y_test, y_test_pred, labels=[0,1])
 
     return lr_model, acc, report, cm, y_test_pred
 
@@ -28,11 +28,11 @@ def train_svm(X_train, y_train, X_val, y_val, X_test, y_test):
     svm_model.fit(X_train, y_train)
     y_val_pred_svm = svm_model.predict(X_val)
     val_acc=accuracy_score(y_val, y_val_pred_svm)
-    report=classification_report(y_val, y_val_pred_svm)
+    acc=classification_report(y_val, y_val_pred_svm)
     y_test_pred_svm = svm_model.predict(X_test)
     print("SVM Test Accuracy:", accuracy_score(y_test, y_test_pred_svm))
-    acc=classification_report(y_test, y_test_pred_svm)
-    cm_svm = confusion_matrix(y_test, y_test_pred_svm)
+    report=classification_report(y_test, y_test_pred, labels=[0,1], target_names=["human","ai"])
+    cm_svm = confusion_matrix(y_test, y_test_pred_svm, labels=[0,1])
     print("Confusion Matrix:\n", cm_svm)
 
     return svm_model,val_acc,report,cm_svm,y_test_pred_svm
@@ -44,12 +44,12 @@ def train_random_forest(X_train, y_train, X_val, y_val, X_test, y_test,n_estimat
     rf_model.fit(X_train, y_train)
     y_val_pred_rf = rf_model.predict(X_val)
     acc_val= accuracy_score(y_val, y_val_pred_rf)
-    report_val=classification_report(y_val, y_val_pred_rf)
+    report_val=classification_report(y_val, y_val_pred_rf, labels=[0,1], target_names=["human","ai"])
     y_test_pred_rf = rf_model.predict(X_test)
     acc=accuracy_score(y_test, y_test_pred_rf)
-    report=classification_report(y_test, y_test_pred_rf)
+    report=classification_report(y_test, y_test_pred_rf, labels=[0,1], target_names=["human","ai"])
 
-    cm_rf = confusion_matrix(y_test, y_test_pred_rf)
+    cm_rf = confusion_matrix(y_test, y_test_pred_rf, labels=[0,1])
     print("Confusion Matrix:\n", cm_rf)
     return rf_model,acc_val,report_val,acc,report,cm_rf,y_test_pred_rf
 
@@ -107,8 +107,8 @@ def train_neural_network(X_train_emb, y_train, X_val_emb, y_val, X_test_emb, y_t
     test_acc=accuracy_score(y_test, y_pred)
 
 
-    report=classification_report(y_test, y_pred, digits=4)
-    cm=confusion_matrix(y_test, y_pred)
+    report=classification_report(y_test, y_pred, labels=[0,1], target_names=["human","ai"], digits=4)
+    cm=confusion_matrix(y_test, y_pred, labels=[0,1])
 
     return ffnn_model,history,y_pred,test_acc,report,cm
 
