@@ -1,6 +1,6 @@
 # Methodology
 
-## 1) Dataset and Initial Exploration
+##  Dataset and Initial Exploration
 The dataset was downloaded and its structure examined to ensure its readiness for experimentation. This was done through:
 - Reviewing the data structure (number of rows and columns) and identifying column names and data types.
 
@@ -14,7 +14,7 @@ The dataset was downloaded and its structure examined to ensure its readiness fo
 
 - Identifying any inconsistencies or illogical values, such as empty text or unexpected tags.
 
-## 2) Text Preprocessing and Normalization
+## Text Preprocessing and Normalization
 A series of preprocessing steps were implemented for Arabic texts to reduce noise and standardize linguistic representation. These steps include:
 - Normalization:
 
@@ -61,7 +61,7 @@ The data was split into three sets to ensure fair evaluation:
 - Test set (Held-out)
 The value of random_state was fixed to ensure reproducibility.
 
-## 5) Modeling
+##  Modeling
 
 ### Baseline Model 
 A simple model was trained as a performance benchmark, such as Logistic Regression 
@@ -73,7 +73,7 @@ The parameters were fine-tuned using a validation set, and the best setting was 
 Semantic representations (embeddings) were extracted using a custom/Arabic-compatible BERT model, and then:
 - A simple neural network (feedforward network) was trained on top of these representations.
 
-## 6) Comprehensive Evaluation 
+## Comprehensive Evaluation 
 All final-selected models were evaluated on the test set using the following metrics:
 - Accuracy
 - Precision
@@ -81,6 +81,6 @@ All final-selected models were evaluated on the test set using the following met
 - F1-Score
 A confusion matrix was also created for each model to compare performance and understand errors across categories.
 
-## 7) Error Analysis
+##  Error Analysis
 Error analysis was performed on the best model by:
 - Examining examples where the model made incorrect predictions (False Positives/False Negatives).
