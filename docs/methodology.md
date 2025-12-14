@@ -73,7 +73,7 @@ The parameters were fine-tuned using a validation set, and the best setting was 
 Semantic representations (embeddings) were extracted using a custom/Arabic-compatible BERT model, and then:
 - A simple neural network (feedforward network) was trained on top of these representations.
 
-## 6) Comprehensive Evaluation (Task 4.4)
+## 6) Comprehensive Evaluation 
 All final-selected models were evaluated on the test set using the following metrics:
 - Accuracy
 - Precision
